@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/abel/new-config/**)",
+      "Bash(nix flake *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['locks']['nodes']['wrappers']['locked']\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(tee /tmp/archive.json)"
+    ]
+  }
+}

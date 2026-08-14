@@ -1,0 +1,13 @@
+profile dell {
+    output eDP-1 mode 1920x1200@60Hz position 0,0 scale 1
+    output "Dell Inc. DELL P3222QE 8CMSXG3" mode 3840x2160@60Hz position 0,-1440 scale 1.5
+}
+
+profile external {
+    output eDP-1 mode 1920x1200@60Hz position 0,0 scale 1
+    output "*" mode 1920x1080 position 0,-1080 scale 1
+}
+
+profile laptop {
+    output eDP-1 mode 1920x1200@60Hz position 0,0 scale 1
+}
