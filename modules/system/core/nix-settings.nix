@@ -8,6 +8,7 @@
           "nix-command"
           "flakes"
         ];
+        warn-dirty = false;
       };
       nixpkgs.config.allowUnfree = true;
       programs.nh = {
