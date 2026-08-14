@@ -1,5 +1,5 @@
-{...}: {
-  flake.nixosModules.infra = {pkgs, ...}: {
+{ ... }: {
+  flake.nixosModules.infra = { pkgs, ... }: {
     virtualisation.podman.enable = true;
 
     environment.systemPackages = with pkgs; [

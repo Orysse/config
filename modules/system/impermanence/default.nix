@@ -58,6 +58,7 @@
               ".config"
               ".local/share/keyrings"
               ".local/share/zsh"
+              ".local/share/zoxide"
               ".local/share/nvim"
               ".local/state/nvim"
               ".local/state/wireplumber"

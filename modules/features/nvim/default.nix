@@ -74,7 +74,7 @@
         postgres-language-server
         black
         isort
-        nixfmt
+        nixfmt-tree
         ocamlformat
         prettierd
         eslint_d

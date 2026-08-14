@@ -1,5 +1,5 @@
-{...}: {
-  flake.nixosModules.yubikey = {pkgs, ...}: {
+{ ... }: {
+  flake.nixosModules.yubikey = { pkgs, ... }: {
     services.pcscd.enable = true;
     services.udev.packages = [
       pkgs.yubikey-personalization

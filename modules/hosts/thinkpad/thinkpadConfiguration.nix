@@ -1,5 +1,5 @@
-{inputs, ...}: {
-  flake.nixosModules.thinkpadConfiguration = {...}: {
+{ inputs, ... }: {
+  flake.nixosModules.thinkpadConfiguration = { ... }: {
     imports = [
       inputs.disko.nixosModules.default
       ./_hardware.nix

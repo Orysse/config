@@ -24,9 +24,7 @@
       };
       services.gvfs.enable = true;
       environment.etc."sway/config".text =
-        builtins.replaceStrings
-          [ "WALLPAPER_PATH" ]
-          [ "${./terra-nova-everforest.jpg}" ]
+        builtins.replaceStrings [ "WALLPAPER_PATH" ] [ "${./terra-nova-everforest.jpg}" ]
           (builtins.readFile ./config);
     };
 }

@@ -11,7 +11,10 @@
       environment.systemPackages = with self'.packages; [
         kitty
       ];
-      fonts.packages = [ pkgs.nerd-fonts.iosevka-term pkgs.nerd-fonts.symbols-only ];
+      fonts.packages = [
+        pkgs.nerd-fonts.iosevka-term
+        pkgs.nerd-fonts.symbols-only
+      ];
     }
   );
   perSystem =

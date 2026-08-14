@@ -4,7 +4,7 @@ require("conform").setup({
   formatters = {
     black = { command = "black" },
     isort = { command = "isort" },
-    nixfmt = { command = "nixfmt" },
+    nixfmt = { command = "treefmt", args = { "--stdin", "$FILENAME" } },
     ocamlformat = { command = "ocamlformat" },
     prettierd = { command = "prettierd" },
     eslint_d = { command = "eslint_d" },

@@ -1,5 +1,5 @@
-{...}: {
-  flake.nixosModules.dev = {pkgs, ...}: {
+{ ... }: {
+  flake.nixosModules.dev = { pkgs, ... }: {
     programs.nvim.java.enable = true;
 
     environment.systemPackages = with pkgs; [

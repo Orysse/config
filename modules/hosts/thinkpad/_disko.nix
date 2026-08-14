@@ -43,7 +43,7 @@
               settings.allowDiscards = true;
               content = {
                 type = "btrfs";
-                extraArgs = ["-f"];
+                extraArgs = [ "-f" ];
                 subvolumes = {
                   "/nix" = {
                     mountOptions = [
