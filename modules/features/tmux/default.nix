@@ -106,7 +106,7 @@
             {
               plugin = continuum;
               configBefore = ''
-                set -g @continuum-restore 'off'
+                set -g @continuum-restore 'on'
                 set -g @continuum-save-interval '15'
               '';
             }

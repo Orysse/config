@@ -1,6 +1,9 @@
 set $mod Mod4
 set $term kitty
 
+exec "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway SWAYSOCK; systemctl --user start sway-session.target"
+exec swaymsg -t subscribe '["shutdown"]' && systemctl --user stop sway-session.target
+
 set $base00 #2d353b
 set $base01 #343f44
 set $base03 #475258

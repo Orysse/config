@@ -23,6 +23,7 @@
         config.common.default = "*";
       };
       services.gvfs.enable = true;
+      environment.sessionVariables.WLR_SCENE_DISABLE_DIRECT_SCANOUT = "1";
       environment.etc."sway/config".text =
         builtins.replaceStrings [ "WALLPAPER_PATH" ] [ "${./terra-nova-everforest.jpg}" ]
           (builtins.readFile ./config);
