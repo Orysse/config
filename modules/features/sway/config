@@ -22,7 +22,7 @@ client.urgent             $base08 $base08 $base00 $base08   $base08
 client.placeholder        $base00 $base00 $base05 $base00   $base00
 client.background         $base00
 
-for_window [app_id="satty"] floating enable, resize set width 80 ppt height 80 ppt, move position center
+for_window [app_id="com.gabm.satty"] floating enable, resize set width 80 ppt height 80 ppt, move position center
 
 bindsym $mod+Return exec $term
 bindsym $mod+d exec fuzzel
@@ -30,7 +30,7 @@ bindsym $mod+q kill
 bindsym $mod+m exit
 bindsym $mod+Shift+r reload
 bindsym $mod+x exec swaylock
-bindsym $mod+s exec grim -g "$(slurp -b '#2d353b55' -c '#a7c080')" -t ppm - | satty --app-id satty -f -
+bindsym $mod+s exec mkdir -p ~/Pictures/Screenshots && grim -g "$(slurp -b '#2d353b55' -c '#a7c080')" -t ppm - | satty --app-id com.gabm.satty -f - -o ~/Pictures/Screenshots/%Y-%m-%d_%H-%M-%S.png
 
 bindsym XF86AudioRaiseVolume exec osd-volume up
 bindsym XF86AudioLowerVolume exec osd-volume down

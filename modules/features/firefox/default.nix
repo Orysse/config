@@ -19,6 +19,10 @@
     {
       programs.firefox = {
         enable = true;
+        preferences = {
+          "media.ffmpeg.vaapi.enabled" = false;
+          "media.rdd-ffmpeg.enabled" = false;
+        };
         policies = {
           ExtensionSettings = {
             "uBlock0@raymondhill.net" = {

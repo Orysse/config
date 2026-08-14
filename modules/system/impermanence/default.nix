@@ -13,6 +13,7 @@
         preserveAt."/persistent" = {
           directories = [
             "/var/lib/bluetooth"
+            "/var/lib/systemd/backlight"
             "/etc/NetworkManager/system-connections"
             "/var/db/sudo/lectured"
             {
