@@ -33,10 +33,13 @@
         let
           screenshotScript = pkgs.writeShellScript "river-screenshot" (builtins.readFile ./screenshot.sh);
           initScript = pkgs.writeShellScript "river-init" (
-            builtins.replaceStrings [ "WALLPAPER_PATH" "SCREENSHOT_SCRIPT" ] [
-              "${./terra-nova-everforest.jpg}"
-              "${screenshotScript}"
-            ] (builtins.readFile ./init)
+            builtins.replaceStrings
+              [ "WALLPAPER_PATH" "SCREENSHOT_SCRIPT" ]
+              [
+                "${./terra-nova-everforest.jpg}"
+                "${screenshotScript}"
+              ]
+              (builtins.readFile ./init)
           );
         in
         inputs.wrappers.lib.wrapPackage [
@@ -48,9 +51,8 @@
               "share/applications/*.desktop"
               "share/wayland-sessions/*.desktop"
             ];
-            runtimePkgs = (
-              with pkgs;
-              [
+            runtimePkgs =
+              (with pkgs; [
                 dbus
                 river-classic
                 rivercarro
@@ -59,11 +61,8 @@
                 grim
                 slurp
                 satty
-              ]
-            )
-            ++ (
-              with self'.packages;
-              [
+              ])
+              ++ (with self'.packages; [
                 kitty
                 fuzzel
                 swaylock
@@ -72,8 +71,7 @@
                 wob-daemon
                 osd-volume
                 osd-brightness
-              ]
-            );
+              ]);
           }
         ]
         // {
