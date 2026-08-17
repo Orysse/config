@@ -8,7 +8,7 @@
         network
         audio
         systemTheme
-        sway
+        river
         greetd
         kitty
         firefox

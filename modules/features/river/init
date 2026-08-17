@@ -1,0 +1,106 @@
+#!/bin/sh
+
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=river
+systemctl --user start river-session.target
+(trap "systemctl --user stop river-session.target" EXIT; sleep infinity) &
+
+mod=Super
+
+riverctl map normal $mod Return spawn kitty
+riverctl map normal $mod D spawn fuzzel
+riverctl map normal $mod Q close
+riverctl map normal $mod+Shift E exit
+riverctl map normal $mod X spawn swaylock
+riverctl map normal $mod S spawn SCREENSHOT_SCRIPT
+
+riverctl map normal $mod J focus-view next
+riverctl map normal $mod K focus-view previous
+riverctl map normal $mod+Shift J swap next
+riverctl map normal $mod+Shift K swap previous
+riverctl map normal $mod Space zoom
+
+riverctl map normal $mod H send-layout-cmd rivercarro "main-ratio -0.05"
+riverctl map normal $mod L send-layout-cmd rivercarro "main-ratio +0.05"
+riverctl map normal $mod+Shift H send-layout-cmd rivercarro "main-count +1"
+riverctl map normal $mod+Shift L send-layout-cmd rivercarro "main-count -1"
+riverctl map normal $mod Up    send-layout-cmd rivercarro "main-location top"
+riverctl map normal $mod Right send-layout-cmd rivercarro "main-location right"
+riverctl map normal $mod Down  send-layout-cmd rivercarro "main-location bottom"
+riverctl map normal $mod Left  send-layout-cmd rivercarro "main-location left"
+riverctl map normal $mod M     send-layout-cmd rivercarro "main-location monocle"
+riverctl map normal $mod W     send-layout-cmd rivercarro "main-location-cycle left,monocle"
+
+riverctl map normal $mod V toggle-float
+riverctl map normal $mod F toggle-fullscreen
+
+riverctl map-pointer normal $mod BTN_LEFT move-view
+riverctl map-pointer normal $mod BTN_RIGHT resize-view
+
+riverctl map normal $mod+Alt H move left 100
+riverctl map normal $mod+Alt J move down 100
+riverctl map normal $mod+Alt K move up 100
+riverctl map normal $mod+Alt L move right 100
+
+riverctl map normal $mod+Alt+Control H snap left
+riverctl map normal $mod+Alt+Control J snap down
+riverctl map normal $mod+Alt+Control K snap up
+riverctl map normal $mod+Alt+Control L snap right
+
+riverctl map normal $mod Period focus-output next
+riverctl map normal $mod Comma focus-output previous
+riverctl map normal $mod+Shift Period send-to-output next
+riverctl map normal $mod+Shift Comma send-to-output previous
+
+for i in $(seq 1 9)
+do
+    tags=$((1 << ($i - 1)))
+    riverctl map normal $mod $i set-focused-tags $tags
+    riverctl map normal $mod+Shift $i set-view-tags $tags
+done
+
+riverctl declare-mode resize
+riverctl map normal $mod R enter-mode resize
+riverctl map resize None H resize horizontal -20
+riverctl map resize None J resize vertical 20
+riverctl map resize None K resize vertical -20
+riverctl map resize None L resize horizontal 20
+riverctl map resize None Return enter-mode normal
+riverctl map resize None Escape enter-mode normal
+
+for mode in normal locked
+do
+    riverctl map $mode None XF86AudioRaiseVolume  spawn 'osd-volume up'
+    riverctl map $mode None XF86AudioLowerVolume  spawn 'osd-volume down'
+    riverctl map $mode None XF86AudioMute         spawn 'osd-volume mute'
+    riverctl map $mode None XF86MonBrightnessUp   spawn 'osd-brightness up'
+    riverctl map $mode None XF86MonBrightnessDown spawn 'osd-brightness down'
+done
+
+riverctl keyboard-layout -variant intl -options ctrl:nocaps us
+
+riverctl input pointer-* natural-scroll enabled
+riverctl input pointer-* tap enabled
+riverctl input pointer-* drag-lock enabled
+
+riverctl background-color 0x2d353b
+riverctl rule-add -app-id '*' ssd
+riverctl rule-add -app-id 'com.gabm.satty' float
+riverctl rule-add -app-id 'com.gabm.satty' dimensions 1536 960
+riverctl rule-add -app-id 'com.gabm.satty' position 192 120
+riverctl rule-add -title 'Save Image As' float
+riverctl border-color-focused 0xa7c080
+riverctl border-color-unfocused 0x475258
+riverctl border-width 5
+
+riverctl xcursor-theme everforest-cursors 24
+
+riverctl focus-follows-cursor disabled
+
+swaybg -i WALLPAPER_PATH -m fill &
+wlsunset -l 48.85 -L 2.35 -t 4800 &
+kanshi &
+waybar &
+wob-daemon &
+
+riverctl default-layout rivercarro
+rivercarro -inner-gaps 0 -outer-gaps 0 -per-tag &

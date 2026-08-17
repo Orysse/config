@@ -1,4 +1,5 @@
 {
+  inputs,
   moduleWithSystem,
   ...
 }:
@@ -40,9 +41,13 @@
       '';
     in
     {
-      packages.wob = pkgs.writeShellScriptBin "wob" ''
-        exec ${pkgs.wob}/bin/wob -c ${config} "$@"
-      '';
+      packages.wob = inputs.wrappers.lib.wrapPackage [
+        { inherit pkgs; }
+        {
+          package = pkgs.wob;
+          flags."-c" = config;
+        }
+      ];
 
       packages.osd-volume = pkgs.writeShellApplication {
         name = "osd-volume";

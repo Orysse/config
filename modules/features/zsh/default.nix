@@ -195,6 +195,9 @@
       zoxideInit = pkgs.runCommand "zoxide-init-zsh" { } ''
         ${lib.getExe pkgs.zoxide} init zsh > $out
       '';
+      kubectlCompletion = pkgs.runCommand "kubectl-completion-zsh" { } ''
+        ${lib.getExe pkgs.kubectl} completion zsh > $out
+      '';
     in
     {
       packages.zsh = inputs.wrappers.wrappers.zsh.wrap {
@@ -268,7 +271,8 @@
 
           compdef g=git
           if (( $+commands[kubectl] )); then
-            zsh-defer eval "$(kubectl completion zsh); compdef _kubectl k"
+            ${builtins.readFile kubectlCompletion}
+            compdef _kubectl k
           fi
         '';
       };

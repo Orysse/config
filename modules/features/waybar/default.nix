@@ -19,7 +19,7 @@
         spacing = 0;
 
         modules-left = [
-          "sway/workspaces"
+          "river/tags"
         ];
         modules-right = [
           "network#speed"
@@ -31,10 +31,9 @@
           "clock"
         ];
 
-        "sway/workspaces" = {
-          disable-scroll = true;
-          format = "{index}";
-          tooltip = false;
+        "river/tags" = {
+          num-tags = 9;
+          hide-vacant = true;
         };
 
         network = {

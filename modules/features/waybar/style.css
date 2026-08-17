@@ -12,7 +12,7 @@ window#waybar {
   color: #d3c6aa;
 }
 
-#workspaces {
+#tags {
   padding: 0 6px;
 }
 
@@ -39,19 +39,23 @@ window#waybar {
   border-left: 1px solid #4a555b;
 }
 
-#workspaces button {
+#tags button {
   padding: 0 3px;
   color: #7a8478;
   background: transparent;
   box-shadow: none;
 }
 
-#workspaces button.focused {
+#tags button.focused {
   color: #d3c6aa;
 }
 
-#workspaces button.urgent {
+#tags button.urgent {
   color: #e67e80;
+}
+
+#tags button.occupied {
+  color: #a7c080;
 }
 
 #network {
