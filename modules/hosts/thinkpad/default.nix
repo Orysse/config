@@ -16,6 +16,7 @@
       # dev
       infra
       # security
+      gaming
     ];
   };
 }

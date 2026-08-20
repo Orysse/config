@@ -26,6 +26,11 @@ modules/
 - Desktop: sway, waybar, wob, kanshi, fuzzel, kitty, tmux, zsh, nvim — Everforest Dark Medium throughout.
 - Every feature is independently runnable: `nix run .#kitty`, `nix build .#zsh`, etc.
 
+## Docs
+
+- [New host bootstrap](./docs/new-host-bootstrap.md) — disk setup, password hashes, registering a host as a secrets recipient.
+- [Secure boot / measured boot host enrollment](./docs/secure-boot-enrollment.md) — continues from there: lanzaboote + Secure Boot + TPM2 LUKS unlock.
+
 ## Commands
 
 ```bash

@@ -17,6 +17,11 @@
             "/etc/NetworkManager/system-connections"
             "/var/db/sudo/lectured"
             {
+              directory = "/var/lib/sbctl";
+              mode = "0700";
+            }
+            "/var/lib/pcrlock.d"
+            {
               directory = "/var/lib/nixos";
               inInitrd = true;
             }
@@ -60,6 +65,7 @@
               ".local/share/zsh"
               ".local/share/zoxide"
               ".local/share/nvim"
+              ".local/share/Steam"
               ".local/state/nvim"
               ".local/state/wireplumber"
               ".claude"

@@ -95,6 +95,7 @@ riverctl border-width 5
 riverctl xcursor-theme everforest-cursors 24
 
 riverctl focus-follows-cursor disabled
+riverctl set-cursor-warp on-output-change
 
 swaybg -i WALLPAPER_PATH -m fill &
 wlsunset -l 48.85 -L 2.35 -t 4800 &

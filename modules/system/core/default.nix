@@ -23,6 +23,7 @@
         git
         lsof
         ripgrep
+        sbctl
         unzip
         usbutils
         wget
