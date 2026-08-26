@@ -102,6 +102,11 @@ wlsunset -l 48.85 -L 2.35 -t 4800 &
 kanshi &
 waybar &
 wob-daemon &
+wl-clip-persist --clipboard both &
+swayidle -w \
+    timeout 300 'swaylock -f' \
+    timeout 600 'wlopm --off \*' resume 'wlopm --on \*' \
+    before-sleep 'swaylock -f' &
 
 riverctl default-layout rivercarro
 rivercarro -inner-gaps 0 -outer-gaps 0 -per-tag &

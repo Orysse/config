@@ -21,6 +21,7 @@
         swaylock
         wob
         waybar
+        keepassxc
       ];
     in
     {

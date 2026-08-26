@@ -30,6 +30,7 @@ modules/
 
 - [New host bootstrap](./docs/new-host-bootstrap.md) — disk setup, password hashes, registering a host as a secrets recipient.
 - [Secure boot / measured boot host enrollment](./docs/secure-boot-enrollment.md) — continues from there: lanzaboote + Secure Boot + TPM2 LUKS unlock.
+- [Password manager](./docs/password-manager.md) — KeePassXC setup and YubiKey challenge-response unlock.
 
 ## Commands
 

@@ -17,9 +17,6 @@
       packages.fuzzel = inputs.wrappers.wrappers.fuzzel.wrap {
         inherit pkgs;
         settings = {
-          main = {
-            icons-enabled = false;
-          };
           colors = {
             background = "2d353bff";
             text = "d3c6aaff";

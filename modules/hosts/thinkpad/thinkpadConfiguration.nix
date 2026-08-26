@@ -9,6 +9,8 @@
     networking.hostName = "thinkpad";
 
     hardware.graphics.enable = true;
+    hardware.enableRedistributableFirmware = true;
+    environment.sessionVariables.LIBVA_DRIVER_NAME = "radeonsi";
 
     flavors.secrets.srs = true;
     flavors.secrets.forge = true;

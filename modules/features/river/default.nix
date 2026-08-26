@@ -58,9 +58,12 @@
                 rivercarro
                 swaybg
                 wlsunset
+                wlopm
+                swayidle
                 grim
                 slurp
                 satty
+                wl-clip-persist
               ])
               ++ (with self'.packages; [
                 kitty
