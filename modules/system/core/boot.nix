@@ -19,7 +19,7 @@
         ];
         pcrlockPolicy = "/var/lib/pcrlock.d/pcrlock.json";
       };
-      configurationLimit = 8; # required cap when measuredBoot is on: systemd-pcrlock hard-limits to 8 generations (enforced by an assertion, not just a doc suggestion)
+      configurationLimit = 8;
     };
 
     boot.initrd.luks.devices.cryptroot.crypttabExtraOpts = [ "tpm2-device=auto" ];

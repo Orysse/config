@@ -77,8 +77,15 @@
             autoSquash = true;
             autoStash = true;
           };
-          includeIf."gitdir:~/Documents/Forge/".path = "${forgeConfig}";
         };
+        # includeIf must be appended after [user] (below), not merged into
+        # `settings` above: toGitINI sorts sections alphabetically, and
+        # "includeIf" < "user" means an in-settings includeIf gets processed
+        # before [user] and gets silently overridden back by it.
+        configFile.content = ''
+          [includeIf "gitdir:~/Documents/Forge/"]
+            path = "${forgeConfig}"
+        '';
       };
     };
 }
