@@ -8,6 +8,7 @@
         bootloader
         nix
         locale
+        zram
       ];
     in
     {

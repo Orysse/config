@@ -98,7 +98,7 @@ nix flake lock --update-input nix-secrets
 ## 4. First boot
 
 Reboot into the new system. Confirm secrets decrypted automatically via the host key (check
-whatever `flavors.secrets` wired up — e.g. `ls /etc/wireguard/`, `~/.kube/configs/`). If you
+whatever `flavors.secrets` / `flavors.wireguard` wired up — e.g. `ls /run/secrets/wireguard/`, `~/.kube/configs/`). If you
 need the YubiKey emergency path, that's `sops.age.keyFile`/`age-plugin-yubikey`, already wired
 generically in `modules/flavors/secrets/default.nix` — no per-host setup needed there beyond
 having the YubiKey itself.

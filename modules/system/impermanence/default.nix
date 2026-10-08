@@ -22,6 +22,10 @@
             }
             "/var/lib/pcrlock.d"
             {
+              directory = "/var/lib/fprint";
+              mode = "0700";
+            }
+            {
               directory = "/var/lib/nixos";
               inInitrd = true;
             }
@@ -70,6 +74,7 @@
               ".local/state/wireplumber"
               ".claude"
               ".tmux/resurrect"
+              ".kube/configs"
               {
                 directory = ".gnupg";
                 mode = "0700";

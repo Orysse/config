@@ -1,0 +1,477 @@
+diff --git a/README.md b/README.md
+index 5be1e741e..cad20c311 100644
+--- a/README.md
++++ b/README.md
+@@ -30,11 +30,13 @@ Install dependencies:
+ * cairo
+ * gdk-pixbuf2 \*\*
+ * pam (optional)
++* fprintd (optional) \*\*\*
+ * [scdoc](https://git.sr.ht/~sircmpwn/scdoc) (optional: man pages) \*
+ * git \*
+ 
+ _\* Compile-time dep_  
+ _\*\* Optional: required for background images other than PNG_
++_\*\*\* Optional: required for fingerprint support (uses pam/swaylock-fingerprint service)_
+ 
+ Run these commands:
+ 
+diff --git a/completions/bash/swaylock b/completions/bash/swaylock
+index 4985922af..0a8080ea3 100644
+--- a/completions/bash/swaylock
++++ b/completions/bash/swaylock
+@@ -14,6 +14,7 @@ _swaylock()
+     -F
+     -h
+     -i
++    -p
+     -k
+     -K
+     -L
+@@ -41,6 +42,7 @@ _swaylock()
+     --hide-keyboard-layout
+     --ignore-empty-password
+     --image
++    --fingerprint
+     --indicator-caps-lock
+     --indicator-idle-visible
+     --indicator-radius
+diff --git a/completions/fish/swaylock.fish b/completions/fish/swaylock.fish
+index 41416a393..f6eca23a3 100644
+--- a/completions/fish/swaylock.fish
++++ b/completions/fish/swaylock.fish
+@@ -14,6 +14,7 @@ complete -c swaylock -l help                   -s h --description "Show help mes
+ complete -c swaylock -l hide-keyboard-layout   -s K --description "Hide the current xkb layout while typing."
+ complete -c swaylock -l ignore-empty-password  -s e --description "When an empty password is provided, do not validate it."
+ complete -c swaylock -l image                  -s i --description "Display the given image, optionally only on the given output."
++complete -c swaylock -l fingerprint            -s p --description "Enable fingerprint authentication via PAM."
+ complete -c swaylock -l indicator-caps-lock    -s l --description "Show the current Caps Lock state also on the indicator."
+ complete -c swaylock -l indicator-idle-visible      --description "Sets the indicator to show even if idle."
+ complete -c swaylock -l indicator-radius            --description "Sets the indicator radius."
+diff --git a/completions/zsh/_swaylock b/completions/zsh/_swaylock
+index 9e9f78866..1f878b7cc 100644
+--- a/completions/zsh/_swaylock
++++ b/completions/zsh/_swaylock
+@@ -18,6 +18,7 @@ _arguments -s \
+ 	'(--hide-keyboard-layout -K)'{--hide-keyboard-layout,-K}'[Hide the current xkb layout while typing]' \
+ 	'(--ignore-empty-password -e)'{--ignore-empty-password,-e}'[When an empty password is provided, do not validate it]' \
+ 	'(--image -i)'{--image,-i}'[Display the given image, optionally only on the given output]:filename:_files' \
++	'(--fingerprint -p)'{--fingerprint,-p}'[Enable fingerprint authentication via PAM]' \
+ 	'(--indicator-caps-lock -l)'{--indicator-caps-lock,-l}'[Show the current Caps Lock state also on the indicator]' \
+ 	'(--indicator-idle-visible)'--indicator-idle-visible'[Sets the indicator to show even if idle]' \
+ 	'(--indicator-radius)'--indicator-radius'[Sets the indicator radius]:radius:' \
+diff --git a/include/swaylock.h b/include/swaylock.h
+index cd4e73ed1..1a7f4bde2 100644
+--- a/include/swaylock.h
++++ b/include/swaylock.h
+@@ -69,6 +69,7 @@ struct swaylock_args {
+ 	bool daemonize;
+ 	int ready_fd;
+ 	bool indicator_idle_visible;
++	bool fingerprint;
+ };
+ 
+ struct swaylock_password {
+@@ -97,6 +98,7 @@ struct swaylock_state {
+ 	enum input_state input_state; // state of the password buffer and key inputs
+ 	uint32_t highlight_start; // position of highlight; 2048 = 1 full turn
+ 	int failed_attempts;
++	char fingerprint_msg[128];
+ 	bool run_display, locked;
+ 	struct ext_session_lock_manager_v1 *ext_session_lock_manager_v1;
+ 	struct ext_session_lock_v1 *ext_session_lock_v1;
+@@ -140,8 +142,15 @@ void damage_state(struct swaylock_state *state);
+ void clear_password_buffer(struct swaylock_password *pw);
+ void schedule_auth_idle(struct swaylock_state *state);
+ 
++struct fingerprint_result {
++	bool success;
++	char msg[128];
++};
++
+ void initialize_pw_backend(int argc, char **argv);
+ void run_pw_backend_child(void);
+ void clear_buffer(char *buf, size_t size);
++bool spawn_fingerprint_child(void);
++int get_fingerprint_fd(void);
+ 
+ #endif
+diff --git a/main.c b/main.c
+index 9e6401fe6..f0f4d5469 100644
+--- a/main.c
++++ b/main.c
+@@ -18,6 +18,7 @@
+ #include "background-image.h"
+ #include "cairo.h"
+ #include "comm.h"
++#include "config.h"
+ #include "log.h"
+ #include "loop.h"
+ #include "password-buffer.h"
+@@ -497,6 +498,7 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
+ 		{"disable-caps-lock-text", no_argument, NULL, 'L'},
+ 		{"indicator-caps-lock", no_argument, NULL, 'l'},
+ 		{"line-uses-inside", no_argument, NULL, 'n'},
++		{"fingerprint", no_argument, NULL, 'p'},
+ 		{"line-uses-ring", no_argument, NULL, 'r'},
+ 		{"scaling", required_argument, NULL, 's'},
+ 		{"tiling", no_argument, NULL, 't'},
+@@ -572,6 +574,8 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
+ 			"Disable the Caps Lock text.\n"
+ 		"  -l, --indicator-caps-lock        "
+ 			"Show the current Caps Lock state also on the indicator.\n"
++		"  -p, --fingerprint                "
++			"Enable fingerprint authentication via PAM (pam_fprintd).\n"
+ 		"  -s, --scaling <mode>             "
+ 			"Image scaling mode: stretch, fill, fit, center, tile, solid_color.\n"
+ 		"  -t, --tiling                     "
+@@ -669,7 +673,7 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
+ 	optind = 1;
+ 	while (1) {
+ 		int opt_idx = 0;
+-		c = getopt_long(argc, argv, "c:deFfhi:kKLlnrs:tuvC:R:", long_options,
++		c = getopt_long(argc, argv, "c:deFfhi:kKLlnprs:tuvC:R:", long_options,
+ 				&opt_idx);
+ 		if (c == -1) {
+ 			break;
+@@ -713,6 +717,15 @@ static int parse_options(int argc, char **argv, struct swaylock_state *state,
+ 				load_image(optarg, state);
+ 			}
+ 			break;
++		case 'p':
++#if HAVE_PAM
++			if (state) {
++				state->args.fingerprint = true;
++			}
++#else
++			fprintf(stderr, "No PAM support. Fingerprint not supported.\n");
++#endif
++			break;
+ 		case 'k':
+ 			if (state) {
+ 				state->args.show_keyboard_layout = true;
+@@ -1061,6 +1074,34 @@ static void term_in(int fd, short mask, void *data) {
+ 	state.run_display = false;
+ }
+ 
++#if HAVE_PAM
++static void fingerprint_in(int fd, short mask, void *data) {
++	if (mask & POLLIN) {
++		struct fingerprint_result result;
++		ssize_t n = read(fd, &result, sizeof(result));
++		if (n < 0) {
++			swaylock_log_errno(LOG_ERROR, "read");
++			return;
++		} else if (n == 0) {
++			swaylock_log(LOG_ERROR, "child closed the pipe");
++			return;
++		} else if (n != sizeof(result)) {
++			swaylock_log(LOG_ERROR, "partial read");
++			return;
++		}
++		if (result.success) {
++			state.run_display = false;
++		} else if (result.msg[0] != '\0') {
++			snprintf(state.fingerprint_msg, sizeof(state.fingerprint_msg),
++				"%s", result.msg);
++			damage_state(&state);
++		}
++	} else if (mask & (POLLHUP | POLLERR)) {
++		swaylock_log(LOG_ERROR,	"Fingerprint subprocess terminated.");
++	}
++}
++#endif
++
+ // Check for --debug 'early' we also apply the correct loglevel
+ // to the forked child, without having to first proces all of the
+ // configuration (including from file) before forking and (in the
+@@ -1113,6 +1154,7 @@ int main(int argc, char **argv) {
+ 		.show_failed_attempts = false,
+ 		.indicator_idle_visible = false,
+ 		.ready_fd = -1,
++		.fingerprint = false
+ 	};
+ 	wl_list_init(&state.images);
+ 	set_default_colors(&state.args.colors);
+@@ -1251,6 +1293,13 @@ int main(int argc, char **argv) {
+ 
+ 	loop_add_fd(state.eventloop, sigusr_fds[0], POLLIN, term_in, NULL);
+ 
++#if HAVE_PAM
++	if (state.args.fingerprint && spawn_fingerprint_child()) {
++		loop_add_fd(state.eventloop, get_fingerprint_fd(), POLLIN,
++			fingerprint_in, NULL);
++	}
++#endif
++
+ 	struct sigaction sa;
+ 	sa.sa_handler = do_sigusr;
+ 	sigemptyset(&sa.sa_mask);
+diff --git a/meson.build b/meson.build
+index b6dfa96d6..2d4882a36 100644
+--- a/meson.build
++++ b/meson.build
+@@ -79,6 +79,7 @@ conf_data = configuration_data()
+ conf_data.set_quoted('SYSCONFDIR', get_option('prefix') / get_option('sysconfdir'))
+ conf_data.set_quoted('SWAYLOCK_VERSION', version)
+ conf_data.set10('HAVE_GDK_PIXBUF', gdk_pixbuf.found())
++conf_data.set10('HAVE_PAM', libpam.found())
+ 
+ subdir('include')
+ 
+@@ -129,6 +130,7 @@ executable('swaylock',
+ if libpam.found()
+ 	install_data(
+ 		'pam/swaylock',
++		'pam/swaylock-fingerprint',
+ 		install_dir: get_option('sysconfdir') / 'pam.d'
+ 	)
+ endif
+diff --git a/pam.c b/pam.c
+index 0cf23f711..d1352ad90 100644
+--- a/pam.c
++++ b/pam.c
+@@ -1,11 +1,15 @@
+ #define _POSIX_C_SOURCE 200809L
++#include <fcntl.h>
+ #include <pwd.h>
+ #include <security/pam_appl.h>
++#include <signal.h>
+ #include <stdbool.h>
++#include <sys/prctl.h>
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
+ #include "comm.h"
++#include "config.h"
+ #include "log.h"
+ #include "password-buffer.h"
+ #include "swaylock.h"
+@@ -63,24 +67,6 @@ static int handle_conversation(int num_msg, const struct pam_message **msg,
+ 	return PAM_SUCCESS;
+ }
+ 
+-static const char *get_pam_auth_error(int pam_status) {
+-	switch (pam_status) {
+-	case PAM_AUTH_ERR:
+-		return "invalid credentials";
+-	case PAM_CRED_INSUFFICIENT:
+-		return "swaylock cannot authenticate users; check /etc/pam.d/swaylock "
+-			"has been installed properly";
+-	case PAM_AUTHINFO_UNAVAIL:
+-		return "authentication information unavailable";
+-	case PAM_MAXTRIES:
+-		return "maximum number of authentication tries exceeded";
+-	default:;
+-		static char msg[64];
+-		snprintf(msg, sizeof(msg), "unknown error (%d)", pam_status);
+-		return msg;
+-	}
+-}
+-
+ void run_pw_backend_child(void) {
+ 	char *pw_buf = NULL;
+ 	struct passwd *passwd = getpwuid(getuid());
+@@ -123,7 +109,7 @@ void run_pw_backend_child(void) {
+ 		bool success = pam_status == PAM_SUCCESS;
+ 		if (!success) {
+ 			swaylock_log(LOG_ERROR, "pam_authenticate failed: %s",
+-				get_pam_auth_error(pam_status));
++				pam_strerror(auth_handle, pam_status));
+ 		}
+ 
+ 		if (!write_comm_reply(success)) {
+@@ -146,3 +132,151 @@ void run_pw_backend_child(void) {
+ 
+ 	exit((pam_status == PAM_SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE);
+ }
++
++static int fingerprint_pipe[2] = {-1, -1};
++static bool fingerprint_conv_called;
++
++static void send_fingerprint_msg(const char *msg) {
++	struct fingerprint_result result = { .success = false };
++	snprintf(result.msg, sizeof(result.msg), "%s", msg);
++	write(fingerprint_pipe[1], &result, sizeof(result));
++}
++
++/*
++ * Conversation function for fingerprint auth. Forwards info and error
++ * messages from pam_fprintd to the parent process for display in the UI.
++ */
++static int fingerprint_conversation(int num_msg, const struct pam_message **msg,
++		struct pam_response **resp, void *data) {
++	fingerprint_conv_called = true;
++
++	struct pam_response *pam_reply = calloc(num_msg, sizeof(*pam_reply));
++	if (pam_reply == NULL) {
++		return PAM_ABORT;
++	}
++	*resp = pam_reply;
++	for (int i = 0; i < num_msg; ++i) {
++		switch (msg[i]->msg_style) {
++		case PAM_PROMPT_ECHO_OFF:
++		case PAM_PROMPT_ECHO_ON:
++			pam_reply[i].resp = strdup("");
++			if (pam_reply[i].resp == NULL) {
++				return PAM_ABORT;
++			}
++			break;
++		case PAM_ERROR_MSG:
++		case PAM_TEXT_INFO:
++			send_fingerprint_msg(msg[i]->msg);
++			break;
++		}
++	}
++	return PAM_SUCCESS;
++}
++
++/*
++ * Child process that continuously attempts fingerprint authentication.
++ * Blocks on pam_authenticate() until pam_fprintd detects a fingerprint.
++ * A fresh PAM session is created for each attempt to handle device
++ * reconnection after suspend.
++ */
++static void run_fingerprint_child(void) {
++	struct passwd *passwd = getpwuid(getuid());
++	if (!passwd) {
++		swaylock_log_errno(LOG_ERROR, "getpwuid failed");
++		exit(EXIT_FAILURE);
++	}
++
++	const struct pam_conv conv = {
++		.conv = fingerprint_conversation,
++		.appdata_ptr = NULL,
++	};
++	int consecutive_errors = 0;
++	unsigned int backoff = 1;
++
++	while (1) {
++		pam_handle_t *auth_handle = NULL;
++		int pam_status;
++
++		pam_status = pam_start("swaylock-fingerprint",
++			passwd->pw_name, &conv, &auth_handle);
++		if (pam_status != PAM_SUCCESS) {
++			swaylock_log(LOG_ERROR, "fingerprint: pam_start failed (%d)", pam_status);
++			exit(EXIT_FAILURE);
++		}
++
++		swaylock_log(LOG_DEBUG, "fingerprint: waiting");
++		fingerprint_conv_called = false;
++		pam_status = pam_authenticate(auth_handle, 0);
++
++		if (pam_status == PAM_SUCCESS) {
++			struct fingerprint_result result = { .success = true };
++			write(fingerprint_pipe[1], &result, sizeof(result));
++			swaylock_log(LOG_INFO, "fingerprint: authentication successful");
++			pam_setcred(auth_handle, PAM_REFRESH_CRED);
++			pam_end(auth_handle, PAM_SUCCESS);
++			exit(EXIT_SUCCESS);
++		}
++
++		if (fingerprint_conv_called) {
++			/* pam_fprintd ran but returned an error (e.g.
++			 * PAM_MAXTRIES with finite max-tries). Retry with
++			 * a fresh session. */
++			swaylock_log(LOG_ERROR, "fingerprint: pam_authenticate failed: %s",
++				pam_strerror(auth_handle, pam_status));
++			pam_end(auth_handle, pam_status);
++			consecutive_errors = 0;
++			backoff = 1;
++			continue;
++		}
++
++		/*
++		 * The conversation function was never called, meaning
++		 * pam_fprintd did not run at all. This happens when the
++		 * device is unavailable (e.g. reconnecting after suspend)
++		 * or the PAM service file is missing. Keep retrying with
++		 * backoff so we recover when the device comes back.
++		 */
++		pam_end(auth_handle, pam_status);
++
++		if (++consecutive_errors >= 3) {
++			swaylock_log(LOG_ERROR, "fingerprint: device unavailable, "
++				"retrying (is " SYSCONFDIR "/pam.d/swaylock-fingerprint installed?)");
++			send_fingerprint_msg("fingerprint unavailable");
++		}
++
++		sleep(backoff);
++		if (backoff < 5)
++			backoff++;
++	}
++}
++
++bool spawn_fingerprint_child(void) {
++	if (pipe(fingerprint_pipe) != 0) {
++		swaylock_log_errno(LOG_ERROR, "failed to create fingerprint pipe");
++		return false;
++	}
++
++	pid_t child = fork();
++	if (child < 0) {
++		swaylock_log_errno(LOG_ERROR, "failed to fork fingerprint child");
++		return false;
++	} else if (child == 0) {
++		prctl(PR_SET_PDEATHSIG, SIGTERM);
++		struct sigaction sa = { .sa_handler = SIG_IGN };
++		sigaction(SIGUSR1, &sa, NULL);
++		close(fingerprint_pipe[0]);
++		run_fingerprint_child();
++	}
++
++	if (fcntl(fingerprint_pipe[0], F_SETFL, O_NONBLOCK) == -1) {
++		swaylock_log(LOG_ERROR, "Failed to make pipe end nonblocking");
++		return false;
++	}
++
++	close(fingerprint_pipe[1]);
++	return true;
++}
++
++int get_fingerprint_fd(void) {
++	return fingerprint_pipe[0];
++}
+diff --git a/pam/swaylock-fingerprint b/pam/swaylock-fingerprint
+new file mode 100644
+index 000000000..42a053ae8
+--- /dev/null
++++ b/pam/swaylock-fingerprint
+@@ -0,0 +1,11 @@
++#
++# PAM configuration file for swaylock fingerprint authentication.
++#
++# Use infinite retries and timeout so that pam_fprintd handles retries
++# internally and the fingerprint child process stays in a single
++# pam_authenticate() call. If you set finite values, swaylock will
++# start a fresh PAM session when pam_authenticate returns.
++#
++auth required pam_fprintd.so max-tries=-1 timeout=-1
++account include login
++session include login
+diff --git a/render.c b/render.c
+index 9d6724159..50a043ee0 100644
+--- a/render.c
++++ b/render.c
+@@ -144,7 +144,8 @@ static bool render_frame(struct swaylock_surface *surface) {
+ 	bool draw_indicator = state->args.show_indicator &&
+ 		(state->auth_state != AUTH_STATE_IDLE ||
+ 			state->input_state != INPUT_STATE_IDLE ||
+-			state->args.indicator_idle_visible);
++			state->args.indicator_idle_visible ||
++			state->fingerprint_msg[0] != '\0');
+ 
+ 	if (draw_indicator) {
+ 		if (state->input_state == INPUT_STATE_CLEAR) {
+@@ -184,6 +185,10 @@ static bool render_frame(struct swaylock_surface *surface) {
+ 					layout_text = xkb_keymap_layout_get_name(state->xkb.keymap, curr_layout);
+ 				}
+ 			}
++
++			if (state->fingerprint_msg[0] != '\0') {
++				layout_text = state->fingerprint_msg;
++			}
+ 		}
+ 	}
+ 

@@ -13,6 +13,10 @@
   perSystem = { pkgs, ... }: {
     packages.swaylock = inputs.wrappers.wrappers.swaylock.wrap {
       inherit pkgs;
+      package = pkgs.swaylock.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ./fingerprint.patch ];
+      });
+      flags."--fingerprint" = true;
       settings = {
         color = "2d353b";
         indicator-idle-visible = true;
@@ -41,6 +45,10 @@
 
         separator-color = "3d484d";
         indicator-caps-lock = true;
+
+        layout-bg-color = "2d353bcc";
+        layout-border-color = "3d484d";
+        layout-text-color = "859289";
       };
     };
   };

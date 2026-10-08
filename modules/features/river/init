@@ -99,6 +99,7 @@ riverctl set-cursor-warp on-output-change
 
 swaybg -i WALLPAPER_PATH -m fill &
 wlsunset -l 48.85 -L 2.35 -t 4800 &
+POLKIT_AGENT &
 kanshi &
 waybar &
 wob-daemon &

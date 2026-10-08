@@ -44,6 +44,7 @@
         oil-nvim.data = pkgs.vimPlugins.oil-nvim;
         snacks-nvim.data = pkgs.vimPlugins.snacks-nvim;
         ansible-vim.data = pkgs.vimPlugins.ansible-vim;
+        showkeys.data = pkgs.vimPlugins.showkeys;
       };
 
       javaSpecs = {

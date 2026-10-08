@@ -34,10 +34,11 @@
           screenshotScript = pkgs.writeShellScript "river-screenshot" (builtins.readFile ./screenshot.sh);
           initScript = pkgs.writeShellScript "river-init" (
             builtins.replaceStrings
-              [ "WALLPAPER_PATH" "SCREENSHOT_SCRIPT" ]
+              [ "WALLPAPER_PATH" "SCREENSHOT_SCRIPT" "POLKIT_AGENT" ]
               [
                 "${./terra-nova-everforest.jpg}"
                 "${screenshotScript}"
+                "${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1"
               ]
               (builtins.readFile ./init)
           );
@@ -64,6 +65,7 @@
                 slurp
                 satty
                 wl-clip-persist
+                wl-clipboard
               ])
               ++ (with self'.packages; [
                 kitty

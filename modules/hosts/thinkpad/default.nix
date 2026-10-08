@@ -10,8 +10,10 @@
       impermanence
       thinkpadConfiguration
       secrets
+      wireguard
       yubikey
       gpg
+      fprint
       ai
       # dev
       infra

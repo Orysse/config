@@ -19,7 +19,7 @@
         ];
         pcrlockPolicy = "/var/lib/pcrlock.d/pcrlock.json";
       };
-      configurationLimit = 8;
+      configurationLimit = 4;
     };
 
     boot.initrd.luks.devices.cryptroot.crypttabExtraOpts = [ "tpm2-device=auto" ];

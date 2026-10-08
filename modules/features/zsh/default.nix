@@ -263,6 +263,8 @@
           }
           source ${inputs.ohmyzsh}/plugins/git/git.plugin.zsh
           if (( $+commands[kubectl] )); then
+            ZSH_CACHE_DIR="$HOME/.local/share/zsh"
+            mkdir -p "$ZSH_CACHE_DIR/completions"
             source ${inputs.ohmyzsh}/plugins/kubectl/kubectl.plugin.zsh
           fi
 

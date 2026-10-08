@@ -21,7 +21,6 @@
         else
           [ ];
 
-      wireguardTunnels = lib.optionals cfg.srs (discoverYaml (secretsRoot + "/srs/wireguard"));
       openstackCreds = lib.optionals cfg.srs (discoverYaml (secretsRoot + "/srs/openstack"));
       k8sConfigs = lib.optionals cfg.forge (discoverYaml (secretsRoot + "/forge/k8s"));
     in
@@ -29,7 +28,7 @@
       imports = [ inputs.sops-nix.nixosModules.sops ];
 
       options.flavors.secrets = {
-        srs = lib.mkEnableOption "SRS secrets (WireGuard tunnels + OpenStack credentials)";
+        srs = lib.mkEnableOption "SRS secrets (OpenStack credentials ; tunnels WireGuard : flavors.wireguard)";
         forge = lib.mkEnableOption "Forge secrets (k8s kubeconfigs)";
       };
 
@@ -41,50 +40,6 @@
           sops.age.keyFile = "/etc/age/yubikey-identity.txt";
           environment.etc."age/yubikey-identity.txt".source = secretsRoot + "/yubikey-identity.txt";
         }
-
-        (lib.mkIf (wireguardTunnels != [ ]) {
-          environment.systemPackages = [ pkgs.wireguard-tools ];
-
-          sops.secrets = lib.listToAttrs (
-            map (
-              name:
-              lib.nameValuePair "wireguard/${name}" {
-                sopsFile = secretsRoot + "/srs/wireguard/${name}.yaml";
-                key = "config";
-                path = "/etc/wireguard/${name}.conf";
-                mode = "0400";
-              }
-            ) wireguardTunnels
-          );
-
-          systemd.services = lib.listToAttrs (
-            map (
-              name:
-              lib.nameValuePair "wg-quick-${name}" {
-                description = "WireGuard tunnel ${name}";
-                after = [
-                  "network-online.target"
-                  "nss-lookup.target"
-                ];
-                wants = [ "network-online.target" ];
-                wantedBy = [ ];
-                path = with pkgs; [
-                  wireguard-tools
-                  iproute2
-                  iptables
-                  procps
-                ];
-                environment.WG_ENDPOINT_RESOLUTION_RETRIES = "infinity";
-                serviceConfig = {
-                  Type = "oneshot";
-                  RemainAfterExit = true;
-                  ExecStart = "${pkgs.wireguard-tools}/bin/wg-quick up /etc/wireguard/${name}.conf";
-                  ExecStop = "${pkgs.wireguard-tools}/bin/wg-quick down /etc/wireguard/${name}.conf";
-                };
-              }
-            ) wireguardTunnels
-          );
-        })
 
         (lib.mkIf (openstackCreds != [ ]) {
           sops.secrets = lib.listToAttrs (
