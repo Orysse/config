@@ -1,0 +1,22 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "filesystem": {
+      "denyRead": ["~/"],
+      "allowRead": ["."]
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/*.sql)",
+      "Read(./**/*.dump)",
+      "Read(./**/*.sqlite)",
+      "Read(./**/*.sqlite3)"
+    ]
+  }
+}

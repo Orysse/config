@@ -23,6 +23,7 @@
     {
       pkgs,
       lib,
+      inputs',
       ...
     }:
     let
@@ -99,6 +100,7 @@
         }:
         inputs.wrappers.wrappers.neovim.wrap {
           inherit pkgs;
+          package = inputs'.neovim-nightly-overlay.packages.neovim;
           specs = baseSpecs // (lib.optionalAttrs java javaSpecs);
           runtimePkgs = runtimeTools ++ (lib.optionals java javaRuntimeTools);
           settings = {

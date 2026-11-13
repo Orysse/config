@@ -1,3 +1,10 @@
+# Desk: Dell 4K centered above the laptop, iiyama in portrait on its right.
+profile desk {
+    output eDP-1 mode 1920x1200@60Hz position 320,0 scale 1
+    output "Dell Inc. DELL P3222QE 8CMSXG3" mode 3840x2160@60Hz position 0,-1440 scale 1.5
+    output "iiyama Corporation PL2493H 11648M8601188" mode 1920x1080@60Hz position 2560,-1440 scale 1 transform 90
+}
+
 profile dell {
     output eDP-1 mode 1920x1200@60Hz position 0,0 scale 1
     output "Dell Inc. DELL P3222QE 8CMSXG3" mode 3840x2160@60Hz position 0,-1440 scale 1.5

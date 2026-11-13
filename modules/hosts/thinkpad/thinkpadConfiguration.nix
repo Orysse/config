@@ -1,5 +1,5 @@
 { inputs, ... }: {
-  flake.nixosModules.thinkpadConfiguration = { ... }: {
+  flake.nixosModules.thinkpadConfiguration = { config, ... }: {
     imports = [
       inputs.disko.nixosModules.default
       ./_hardware.nix
@@ -14,6 +14,18 @@
 
     flavors.secrets.srs = true;
     flavors.secrets.forge = true;
+
+    # VPN du homelab au quotidien : Tailscale, serveur Headscale (https://hs.abe.lc, login
+    # Pocket-ID), nuc1 route 192.168.1.192/26. Première fois :
+    #   tailscale up --login-server https://hs.abe.lc --accept-routes
+    # Ensuite `tailscale up` / `tailscale down`, sans sudo (operator ci-dessous).
+    # wg-homelab ci-dessous reste en secours (cluster ou Pocket-ID en panne) : pas les deux
+    # en même temps, ils routent le même réseau.
+    services.tailscale = {
+      enable = true;
+      useRoutingFeatures = "client";   # --accept-routes (rp_filter souple)
+      extraSetFlags = [ "--operator=${config.user.name}" ];   # pilotable sans sudo
+    };
 
     # Tunnels WireGuard : `nmcli connection up <nom>`. Secrets : nix-secrets/secrets/wireguard/.
     # Réseaux routés à garder disjoints entre tunnels (sinon ils se masquent mutuellement).

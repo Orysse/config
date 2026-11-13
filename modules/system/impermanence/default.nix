@@ -22,6 +22,12 @@
             }
             "/var/lib/pcrlock.d"
             {
+              # Machine key, login server (hs.abe.lc) and session: without it, Tailscale
+              # starts logged out on login.tailscale.com after every boot.
+              directory = "/var/lib/tailscale";
+              mode = "0700";
+            }
+            {
               directory = "/var/lib/fprint";
               mode = "0700";
             }
@@ -69,10 +75,12 @@
               ".local/share/zsh"
               ".local/share/zoxide"
               ".local/share/nvim"
+              ".local/share/opencode"
               ".local/share/Steam"
               ".local/state/nvim"
               ".local/state/wireplumber"
               ".claude"
+              ".omo"
               ".tmux/resurrect"
               ".kube/configs"
               {

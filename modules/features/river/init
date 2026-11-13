@@ -12,6 +12,7 @@ riverctl map normal $mod Q close
 riverctl map normal $mod+Shift E exit
 riverctl map normal $mod X spawn swaylock
 riverctl map normal $mod S spawn SCREENSHOT_SCRIPT
+riverctl map normal None Print spawn SCREENSHOT_FULL_SCRIPT
 
 riverctl map normal $mod J focus-view next
 riverctl map normal $mod K focus-view previous
@@ -78,7 +79,7 @@ done
 
 riverctl keyboard-layout -variant intl -options ctrl:nocaps us
 
-riverctl input pointer-* natural-scroll enabled
+riverctl input "*Touchpad" natural-scroll enabled
 riverctl input pointer-* tap enabled
 riverctl input pointer-* drag-lock enabled
 

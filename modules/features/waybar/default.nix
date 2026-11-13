@@ -14,6 +14,7 @@
       inherit pkgs;
       settings = {
         layer = "bottom";
+        output = "eDP-1";
         position = "bottom";
         height = 36;
         spacing = 0;
@@ -53,7 +54,7 @@
         "custom/wireguard" = {
           exec = "ip -o link show type wireguard 2>/dev/null | awk -F': ' '{print $2}' | paste -sd' '";
           interval = 5;
-          format = " {}";
+          format = "  {}";
           exec-if = "ip -o link show type wireguard 2>/dev/null | grep -q wg";
           tooltip = false;
         };

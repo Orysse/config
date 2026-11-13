@@ -7,6 +7,8 @@
       kubectx
       k9s
       kubernetes-helm
+      fluxcd
+      kubelogin-oidc     # kubectl oidc-login (homelab: login through Pocket-ID)
 
       opentofu
       ansible

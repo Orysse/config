@@ -1,14 +1,7 @@
-# Tunnels WireGuard du poste.
-#
-# tunnels.<nom>     : tunnel DÉCLARÉ ici (adresses, pairs, routes lisibles et diffables) ;
-#                     seuls les secrets (private-key, PSK) viennent de nix-secrets.
-#                     Réalisé en profil NetworkManager : `nmcli connection up <nom>`, sans sudo.
-# wgQuickFiles.<nom>: tunnel HÉRITÉ, fourni comme un .conf wg-quick complet chiffré
-#                     (clé `config`). `sudo systemctl start wg-quick-<nom>`.
-#                     À migrer vers `tunnels` (déchiffrer une fois, séparer la clé privée).
-#
-# Aucun démarrage automatique, rien sur le disque : profils et .conf vivent dans /run.
-# Nom = nom d'interface : 15 caractères max, préfixe `wg-` (repéré par waybar).
+# tunnels     : profils NetworkManager (nmcli connection up <nom>, sans sudo) ; seuls les
+#               secrets (private-key, PSK) viennent de nix-secrets.
+# wgQuickFiles : .conf wg-quick complets chiffrés, pour un tunnel pas encore migré.
+# Nom = nom d'interface : 15 caractères max, préfixe wg- (repéré par waybar).
 { inputs, ... }:
 {
   flake.nixosModules.wireguard =
@@ -23,14 +16,12 @@
       cfg = config.flavors.wireguard;
       secretsRoot = inputs.nix-secrets + "/secrets";
 
-      # Secrets d'un tunnel : clés de son fichier sops (private-key + PSK éventuelles).
       secretKeys = t: [ "private-key" ] ++ lib.filter (k: k != null) (map (p: p.presharedKey) t.peers);
       secretName = name: key: "wireguard-${name}-${key}";
-      # Variable d'environnement qui porte un secret jusqu'au profil NetworkManager.
       envName = name: key: lib.toUpper (lib.replaceStrings [ "-" ] [ "_" ] "${name}_${key}");
 
       isV6 = lib.hasInfix ":";
-      # address1 = "...", address2 = "..." (format keyfile NetworkManager)
+      # Format keyfile NetworkManager : address1, address2…
       numbered = prefix: xs: lib.listToAttrs (lib.imap1 (i: x: lib.nameValuePair "${prefix}${toString i}" x) xs);
       nmList = xs: lib.concatStringsSep ";" xs + ";";
 
@@ -105,7 +96,7 @@
               // lib.optionalAttrs (p.persistentKeepalive != null) { persistent-keepalive = p.persistentKeepalive; }
               // lib.optionalAttrs (p.presharedKey != null) {
                 preshared-key = "$" + envName name p.presharedKey;
-                preshared-key-flags = 0; # stockée dans le profil (pas d'agent de secrets)
+                preshared-key-flags = 0; # stockée dans le profil, pas d'agent de secrets
               }
             )
           ) t.peers
@@ -140,7 +131,6 @@
         })
 
         (lib.mkIf (cfg.tunnels != { }) {
-          # Un secret sops par clé utilisée (private-key, PSK…) de chaque tunnel.
           sops.secrets = lib.listToAttrs (
             lib.concatLists (
               lib.mapAttrsToList (
@@ -156,7 +146,7 @@
             )
           );
 
-          # NOM_CLE=<secret> pour chaque secret ; NetworkManager substitue $NOM_CLE dans les profils.
+          # ensureProfiles substitue $NOM dans les profils depuis ce fichier.
           sops.templates."wireguard-networkmanager.env".content = lib.concatStringsSep "\n" (
             lib.concatLists (
               lib.mapAttrsToList (
@@ -187,7 +177,7 @@
             autostart = false;
           }) cfg.wgQuickFiles;
 
-          # Réessayer la résolution DNS de l'endpoint (réseau pas encore prêt, Wi-Fi qui arrive…).
+          # L'endpoint peut ne pas être résolvable tant que le réseau n'est pas prêt.
           systemd.services = lib.mapAttrs' (
             name: _: lib.nameValuePair "wg-quick-${name}" { environment.WG_ENDPOINT_RESOLUTION_RETRIES = "infinity"; }
           ) cfg.wgQuickFiles;

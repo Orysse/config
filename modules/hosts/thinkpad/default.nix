@@ -17,6 +17,7 @@
       ai
       # dev
       infra
+      labHost
       # security
       gaming
     ];

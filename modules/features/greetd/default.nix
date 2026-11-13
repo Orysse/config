@@ -6,6 +6,9 @@
       ...
     }:
     {
+      # Type=idle only waits 5 s; wait for the whole boot so logs stop before tuigreet draws.
+      systemd.services.greetd.unitConfig.After = [ "multi-user.target" ];
+
       services.greetd = {
         enable = true;
         settings.default_session = {

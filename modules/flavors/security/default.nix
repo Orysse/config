@@ -1,5 +1,5 @@
 { ... }: {
-  flake.nixosModules.security = { pkgs, ... }: {
+    flake.nixosModules.security = { pkgs, ... }: {
     environment.systemPackages = with pkgs; [
       gdb
       gef

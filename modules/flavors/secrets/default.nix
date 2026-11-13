@@ -38,6 +38,9 @@
 
           sops.age.plugins = [ pkgs.age-plugin-yubikey ];
           sops.age.keyFile = "/etc/age/yubikey-identity.txt";
+          # Secrets are installed in the initrd, before impermanence restores
+          # /etc/ssh: read the host key from the persistent volume directly.
+          sops.age.sshKeyPaths = [ "/persistent/etc/ssh/ssh_host_ed25519_key" ];
           environment.etc."age/yubikey-identity.txt".source = secretsRoot + "/yubikey-identity.txt";
         }
 
