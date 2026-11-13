@@ -290,6 +290,12 @@
         settings.sandbox.enabled = lib.mkForce false;
         settings.permissions.defaultMode = lib.mkForce "auto";
       };
+
+      # Same config as `claude` (sandbox included) plus a deny on reading any *.log file.
+      packages.claude-nolog = self'.packages.claude.wrap {
+        binName = "claude-nolog";
+        settings.permissions.deny = [ "Read(**/*.log)" ];
+      };
     };
 
   flake.nixosModules.ai = moduleWithSystem (
@@ -311,6 +317,7 @@
       environment.systemPackages = [
         self'.packages.claude
         self'.packages.claude-auto
+        self'.packages.claude-nolog
         self'.packages.new-secure-project
         pkgs.nodejs
         pkgs.bun
